@@ -1,0 +1,262 @@
+Task 1:Simple E-commerce Store, follow these step-by-step instructions to build a basic e-commerce store with product listings and a shopping cart:
+
+1. Project Setup
+
+Backend Setup
+
+1. Choose a Backend Framework:
+
+Choose between Django (Python) or Express.js (Node.js). For this example, we'll use Express.js.
+
+
+
+2. Initialize the Project:
+
+Create a new folder for the project and open a terminal in that directory.
+
+Run the following commands to set up the project:
+
+mkdir ecommerce-store
+cd ecommerce-store
+npm init -y
+
+
+
+3. Install Required Packages:
+
+Install the necessary backend packages:
+
+npm install express mongoose cors body-parser
+
+express: Framework for backend routing and handling requests.
+
+mongoose: For database operations with MongoDB.
+
+cors: Middleware for cross-origin requests.
+
+body-parser: Middleware for parsing incoming request bodies.
+
+
+
+4. Create Backend Files:
+
+Create the following files in the ecommerce-store directory:
+
+server.js: Main entry point for the backend server.
+
+models/Product.js: Define the product schema and model.
+
+routes/products.js: Handle product-related API routes.
+
+
+
+
+5. Setup MongoDB:
+
+Use MongoDB as the database to store products. You can use MongoDB Atlas for a cloud database or run a local MongoDB instance.
+
+
+
+6. Backend Code Implementation:
+
+server.js:
+
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://localhost:27017/ecommerce', { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB Connected'))
+  .catch(err => console.log(err));
+
+// Define Routes
+const products = require('./routes/products');
+app.use('/api/products', products);
+
+// Start Server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(Server running on port ${PORT}));
+
+models/Product.js:
+
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
+
+// Product Schema
+const ProductSchema = new Schema({
+  name: { type: String, required: true },
+  description: { type: String, required: true },
+  price: { type: Number, required: true },
+  inStock: { type: Boolean, default: true },
+  imageUrl: { type: String }
+});
+
+module.exports = mongoose.model('Product', ProductSchema);
+
+routes/products.js:
+
+const express = require('express');
+const router = express.Router();
+const Product = require('../models/Product');
+
+// Get All Products
+router.get('/', async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Create a New Product
+router.post('/', async (req, res) => {
+  const { name, description, price, imageUrl } = req.body;
+  const newProduct = new Product({ name, description, price, imageUrl });
+  try {
+    const savedProduct = await newProduct.save();
+    res.json(savedProduct);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+module.exports = router;
+
+
+
+Frontend Setup
+
+1. Create a folder named client in the ecommerce-store directory.
+
+
+2. Create an index.html file inside the client folder.
+
+
+3. Add the following code to index.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple E-commerce Store</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Simple E-commerce Store</h1>
+    <div id="product-list"></div>
+    <h2>Shopping Cart</h2>
+    <div id="cart"></div>
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+4. Create a styles.css file in the same client folder to style the application:
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+#product-list, #cart {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 20px;
+}
+
+.product, .cart-item {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin: 10px;
+    width: 200px;
+    text-align: center;
+}
+
+
+5. Create a app.js file in the same client folder to handle frontend logic:
+
+// Fetch Products from Backend
+fetch('http://localhost:5000/api/products')
+    .then(response => response.json())
+    .then(products => displayProducts(products));
+
+function displayProducts(products) {
+    const productList = document.getElementById('product-list');
+    products.forEach(product => {
+        const productDiv = document.createElement('div');
+        productDiv.className = 'product';
+        productDiv.innerHTML = `
+            <h3>${product.name}</h3>
+            <p>${product.description}</p>
+            <p>Price: $${product.price}</p>
+            <button onclick="addToCart('${product.name}', ${product.price})">Add to Cart</button>
+        `;
+        productList.appendChild(productDiv);
+    });
+}
+
+const cart = [];
+
+function addToCart(name, price) {
+    const cartItem = cart.find(item => item.name === name);
+    if (cartItem) {
+        cartItem.quantity++;
+    } else {
+        cart.push({ name, price, quantity: 1 });
+    }
+    displayCart();
+}
+
+function displayCart() {
+    const cartDiv = document.getElementById('cart');
+    cartDiv.innerHTML = '';
+    cart.forEach(item => {
+        const cartItemDiv = document.createElement('div');
+        cartItemDiv.className = 'cart-item';
+        cartItemDiv.innerHTML = `
+            <h4>${item.name}</h4>
+            <p>Price: $${item.price}</p>
+            <p>Quantity: ${item.quantity}</p>
+        `;
+        cartDiv.appendChild(cartItemDiv);
+    });
+}
+
+
+
+2. Testing the Application
+
+1. Run the backend server:
+
+node server.js
+
+
+2. Open the index.html file in a browser to see the frontend.
+
+
+
+3. Next Steps
+
+1. You can further enhance this project by:
+
+Implementing user authentication.
+
+Adding more features like product search, filtering, and sorting.
+
+Enhancing the shopping cart functionality to handle quantity changes and removal of items....
